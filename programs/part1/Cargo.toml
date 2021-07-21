@@ -1,0 +1,17 @@
+[package]
+name = "part1"
+version = "0.1.0"
+description = "Hello Solana - Part 1"
+edition = "2018"
+
+[features]
+no-entrypoint = []
+no-idl = []
+cpi = ["no-entrypoint"]
+default = []
+
+[dependencies]
+anchor-client = "0.11.0"
+solana-client = "1.7.2"
+solana-sdk = "1.7.2"
+shellexpand = "2.1.0"
