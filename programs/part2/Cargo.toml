@@ -1,0 +1,11 @@
+[package]
+name = "part2"
+version = "0.1.0"
+description = "Hello Solana - Part 2"
+edition = "2018"
+
+[dependencies]
+anchor-client = "0.11.0"
+solana-client = "1.7.2"
+solana-sdk = "1.7.2"
+shellexpand = "2.1.0"

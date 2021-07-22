@@ -7,7 +7,6 @@ use solana_sdk::signature::Signature;
 use solana_sdk::transaction::Transaction;
 use solana_sdk::commitment_config::CommitmentConfig;
 
-// Shows how to create a new account
 fn main() {
     if let Err(err) = run() {
         eprintln!("{:?}", err);
@@ -15,7 +14,7 @@ fn main() {
     }
 }
 
-fn run() -> Result<Signature, ClientError> {
+fn run() -> Result<(), ClientError> {
     let cluster_url = "http://localhost:8899".to_string();
 
     // (1) Load your wallet account from filesystem (from default location)
@@ -72,5 +71,5 @@ fn run() -> Result<Signature, ClientError> {
     println!("new account balance = {}", rpc.get_account(&account.pubkey())?.lamports);
     println!("cost = {}", balance - rpc.get_account(&wallet.pubkey())?.lamports);
 
-    result
+    Ok(())
 }
