@@ -5,49 +5,48 @@ use solana_client::rpc_client::RpcClient;
 use solana_client::rpc_config::RpcSendTransactionConfig;
 use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::transaction::Transaction;
+use rand::rngs::OsRng;
 
 static CLUSTER_URL: &str = "http://localhost:8899";
-static SOURCE_WALLET_PATH: &str = "~/.config/solana/id.json";
-static TARGET_WALLET_PATH: &str = "~/dev/personal/wallets/test-1.json";
+static FEE_PAYER_FILESYSTEM_WALLET_PATH: &str = "~/.config/solana/id.json";
 static AMOUNT: u64 = 75000;
 
 // transfer money between same account ? is that even possible , yes you can and I will cost you 5000 pretty much for nothing
 fn main() {
-    if let Err(err) = run(SOURCE_WALLET_PATH, TARGET_WALLET_PATH, AMOUNT) {
+    if let Err(err) = run(FEE_PAYER_FILESYSTEM_WALLET_PATH, AMOUNT) {
         eprintln!("{:?}", err);
         std::process::exit(1);
     }
 }
 
-fn run(source: &str, target: &str, amount: u64) -> Result<(), ClientError> {
+fn run(source: &str, amount: u64) -> Result<(), ClientError> {
     // (1) Load 2 filesystem wallets
-    let source_wallet = get_wallet(source);
-    let target_wallet = get_wallet(target);
+    let fee_payer_wallet = get_filesystem_wallet(source);
+    let recipient_wallet = new_keys();
 
     // (2) Create RPC client to be used to talk to Solana cluster
-    let rpc = create_client();
+    let rpc = rpc_client();
 
     // (3) Get an initial balance for both accounts
-    let source_balance = get_balance(&rpc, &source_wallet)?;
-    let target_balance = get_balance(&rpc, &target_wallet)?;
+    let fee_payer_balance = get_balance(&rpc, &fee_payer_wallet)?;
 
     // (4) Build transfer instruction
     let instruction = solana_sdk::system_instruction::transfer(
-        &source_wallet.pubkey(),
-        &target_wallet.pubkey(),
+        &fee_payer_wallet.pubkey(),
+        &recipient_wallet.pubkey(),
         amount,
     );
 
     // (5) Build a transaction wrapping the transfer instruction
     // Note that only transaction only need to be signed by the source account
-    let signers = [&source_wallet];
+    let signers = [&fee_payer_wallet];
     let instructions = vec![instruction];
 
     let (recent_hash, _) = rpc.get_recent_blockhash()?;
 
     let txn = Transaction::new_signed_with_payer(
         &instructions,
-        Some(&source_wallet.pubkey()),
+        Some(&fee_payer_wallet.pubkey()),
         &signers,
         recent_hash,
     );
@@ -62,24 +61,35 @@ fn run(source: &str, target: &str, amount: u64) -> Result<(), ClientError> {
         },
     )?;
 
-    println!("source lost = {}", (source_balance - get_balance(&rpc, &source_wallet)?));
-    println!("target gained = {}",  get_balance(&rpc, &target_wallet)? - target_balance);
+    println!("fee payer balance delta  = {}", (fee_payer_balance - get_balance(&rpc, &fee_payer_wallet)?));
+    println!("recipient balance = {}",  get_balance(&rpc, &recipient_wallet)?);
 
     Ok(())
 }
 
-fn create_client() -> RpcClient {
+///
+/// RPC Client helpers
+///
+
+fn rpc_client() -> RpcClient {
     RpcClient::new_with_commitment(
         CLUSTER_URL.to_string(),
         CommitmentConfig::confirmed(),
     )
 }
 
-fn get_wallet(path: &str) -> Keypair {
-    read_keypair_file(&*shellexpand::tilde(path))
-        .expect("Example requires a keypair file")
-}
-
 fn get_balance(rpc: &RpcClient, wallet: &Keypair) -> Result<u64, ClientError> {
     rpc.get_account(&wallet.pubkey()).map(|b| b.lamports)
+}
+
+///
+/// Other Helpers
+///
+
+fn get_filesystem_wallet(wallet_path: &str) -> Keypair {
+    read_keypair_file(&*shellexpand::tilde(wallet_path)).unwrap()
+}
+
+fn new_keys() -> Keypair {
+    Keypair::generate(&mut OsRng)
 }
