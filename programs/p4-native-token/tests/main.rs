@@ -14,12 +14,11 @@ use solana_sdk::transaction::Transaction;
 
 static CLUSTER_URL: &str = "http://localhost:8899";
 static FEE_PAYER_FILESYSTEM_WALLET_PATH: &str = "~/.config/solana/id.json";
-static TOKEN_ACCOUNT_BALANCE_SOLS: f64 = 5 as f64;
+static TOKEN_ACCOUNT_BALANCE_SOLS: f64 = 5_f64;
 
 /// Important: Make sure to run a "Local Net" with the program deploy to run this tests.
 /// - solana-tests-validator
-/// - anchor build
-/// - anchor deploy
+
 
 /// You can explore your Local Net using https://explorer.solana.com/ just connect it
 /// to http://localhost:8899

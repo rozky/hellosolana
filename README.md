@@ -3,6 +3,10 @@
 Collection of mini programs connecting to Solana blockchain using Rust RPC 
 Client. Showcasing basic operations like creating account, transferring SOLs between accounts, etc.
 
+## Exampples
+
+### 
+
 ## TODO
 
 // todo transfer money out of empty account ?
